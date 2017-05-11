@@ -21,7 +21,7 @@ public class ApplicationController {
     @RequestMapping(
             method = RequestMethod.GET
     )
-    public List<ApplicationDTO> getAll() {
+    public List<ApplicationDTO> getAll(@PathVariable("active") boolean onlyActiveApplications) {
         return null;
     }
 
