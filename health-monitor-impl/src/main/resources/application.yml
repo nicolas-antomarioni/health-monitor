@@ -1,0 +1,40 @@
+banner:
+  location: classpath:banner.txt
+
+spring:
+    datasource:
+        url: jdbc:h2:mem:health-monitor
+        username: user
+        password: sa
+        driver-class-name: org.h2.Driver
+        max-active : 20
+        max-idle : 20
+        test-while-idle : true
+        test-on-borrow : true
+        validation-query : SELECT 1
+        time-between-eviction-runs-millis : 5000
+        min-evictable-idle-time-millis : 60000
+    jpa:
+        hibernate:
+            ddl-auto: validate
+    h2:
+        console:
+            enabled: true
+            path: /console/
+    http:
+        encoding:
+            charset: UTF-8
+            enabled: true
+            force: true
+
+server:
+  port: 8095
+  use-forward-headers: true
+  tomcat:
+    remote_ip_header: x-forwarded-for
+    max-threads: 100
+
+signature:
+  validation:
+    use:
+      https: false
