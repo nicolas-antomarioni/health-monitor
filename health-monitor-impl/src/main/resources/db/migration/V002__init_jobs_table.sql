@@ -1,0 +1,5 @@
+CREATE TABLE IF NOT EXISTS `jobs` (
+	`id` integer NOT NULL AUTO_INCREMENT,
+	`task` varchar(30) DEFAULT NULL,
+	PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
