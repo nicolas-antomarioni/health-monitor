@@ -82,6 +82,11 @@
             <version>1.4.3.RELEASE</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.appdirect.tests</groupId>
+            <artifactId>qaauto-dbuser</artifactId>
+            <version>287.0-SNAPSHOT</version>
+        </dependency>
     </dependencies>
 
 

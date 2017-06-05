@@ -8,8 +8,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import lombok.experimental.Delegate;
 
-import com.appdirect.healthmonitor.entity.Run;
 import com.appdirect.healthmonitor.type.TaskType;
 
 @NoArgsConstructor
@@ -23,5 +23,8 @@ public class JobDTO {
 
 	private TaskType task;
 
-	private Set<Run> runs = new HashSet<>();
+	@Delegate
+	private Set<ApplicationDTO> applications = new HashSet<>();
+
+	private Set<RunDTO> runs = new HashSet<>();
 }

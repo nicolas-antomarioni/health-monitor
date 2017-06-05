@@ -5,17 +5,18 @@ import java.util.HashSet;
 import java.util.Set;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-
-import com.appdirect.healthmonitor.entity.Job;
+import lombok.experimental.Delegate;
 
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
+@Builder
 @ToString
 public class SchedulerDTO {
 
@@ -25,11 +26,12 @@ public class SchedulerDTO {
 
 	private String description;
 
-	private Set<Job> jobs = new HashSet<>();
+	@Delegate
+	private Set<JobDTO> jobs = new HashSet<>();
 
 	private Instant lastRun;
 
 	private Long interval;
 
-	private Boolean enabled;
+	private Boolean active;
 }

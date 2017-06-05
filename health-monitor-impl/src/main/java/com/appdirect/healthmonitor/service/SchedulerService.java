@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import com.appdirect.healthmonitor.model.JobDTO;
 import com.appdirect.healthmonitor.model.SchedulerDTO;
 
 public interface SchedulerService {
@@ -22,4 +23,6 @@ public interface SchedulerService {
 	SchedulerDTO update(SchedulerDTO schedulerDTO);
 
 	void delete(Integer id);
+
+	JobDTO addJobToScheduler(Integer id, JobDTO jobDTO);
 }

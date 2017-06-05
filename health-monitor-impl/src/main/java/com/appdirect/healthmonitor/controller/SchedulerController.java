@@ -1,6 +1,7 @@
 package com.appdirect.healthmonitor.controller;
 
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -16,7 +17,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.appdirect.healthmonitor.model.JobDTO;
 import com.appdirect.healthmonitor.model.SchedulerDTO;
+import com.appdirect.healthmonitor.service.JobService;
 import com.appdirect.healthmonitor.service.SchedulerService;
 
 @RestController
@@ -32,6 +35,9 @@ public class SchedulerController {
 
 	@Autowired
 	private SchedulerService schedulerService;
+
+	@Autowired
+	private JobService jobService;
 
 	@RequestMapping(
 			method = RequestMethod.GET
@@ -64,5 +70,22 @@ public class SchedulerController {
 	)
 	public void delete(@PathVariable("id") Integer id) {
 		schedulerService.delete(id);
+	}
+
+	@RequestMapping(
+			method = RequestMethod.GET,
+			value = "/{id}/jobs"
+	)
+	public Set<JobDTO> getSchedulerJobs(@PathVariable("id") Integer id) {
+		SchedulerDTO schedulerDTO = schedulerService.find(id);
+		return schedulerDTO.getJobs();
+	}
+
+	@RequestMapping(
+			method = RequestMethod.POST,
+			value = "/{id}/jobs"
+	)
+	public JobDTO createJob(@PathVariable("id") Integer id, @RequestBody JobDTO jobDTO) {
+		return schedulerService.addJobToScheduler(id, jobDTO);
 	}
 }

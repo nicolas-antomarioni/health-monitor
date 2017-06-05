@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 
 import com.appdirect.healthmonitor.entity.Scheduler;
@@ -14,5 +15,8 @@ public interface SchedulerRepository extends CrudRepository<Scheduler, Integer> 
 
 	Page<Scheduler> findAll(Pageable pageable);
 
-	List<Scheduler> findByEnabledTrue();
+	Page<Scheduler> findByActiveTrue(Pageable pageable);
+
+	@Query("SELECT s FROM Scheduler s WHERE (s.lastRun + s.interval) > current_date")
+	List<Scheduler> findReadyToRun();
 }

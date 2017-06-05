@@ -4,6 +4,6 @@ CREATE TABLE IF NOT EXISTS `schedulers` (
 	`description` varchar(200) DEFAULT NULL,
 	`last_run` binary(255) NOT NULL,
 	`interval` long NOT NULL,
-	`enabled` boolean NOT NULL,
+	`active` boolean NOT NULL,
 	PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

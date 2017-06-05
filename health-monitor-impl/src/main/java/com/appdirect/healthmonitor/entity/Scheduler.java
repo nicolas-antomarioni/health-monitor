@@ -47,6 +47,6 @@ public class Scheduler implements Serializable {
 	@Column(name = "interval", nullable = false)
 	private Long interval;
 
-	@Column(name = "enabled")
-	private Boolean enabled;
+	@Column(name = "active")
+	private Boolean active;
 }

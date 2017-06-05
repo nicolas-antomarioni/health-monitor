@@ -21,7 +21,7 @@ public class FlywayAutoConfiguration {
 	}
 
 	@Configuration
-	@ConditionalOnProperty(prefix = "flyway", name = "enabled")
+	@ConditionalOnProperty(prefix = "flyway", name = "active")
 	@Import(FlywayJpaDependencyConfiguration.class)
 	public static class FlywayConfiguration {
 		@Value("${flyway.repair}")
@@ -48,7 +48,7 @@ public class FlywayAutoConfiguration {
 	 * Additional configuration to ensure that {@link EntityManagerFactory} beans depend-on the flyway bean.
 	 */
 	@Configuration
-	@ConditionalOnProperty(prefix = "flyway", name = "enabled")
+	@ConditionalOnProperty(prefix = "flyway", name = "active")
 	protected static class FlywayJpaDependencyConfiguration extends EntityManagerFactoryDependsOnPostProcessor {
 
 		public FlywayJpaDependencyConfiguration() {

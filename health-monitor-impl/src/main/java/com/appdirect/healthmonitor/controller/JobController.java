@@ -1,6 +1,7 @@
 package com.appdirect.healthmonitor.controller;
 
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.appdirect.healthmonitor.model.ApplicationDTO;
 import com.appdirect.healthmonitor.model.JobDTO;
 import com.appdirect.healthmonitor.service.JobService;
 
@@ -64,5 +66,22 @@ public class JobController {
 	)
 	public void delete(@PathVariable("id") Integer id) {
 		jobService.delete(id);
+	}
+
+	@RequestMapping(
+			method = RequestMethod.GET,
+			value = "/{id}/applications"
+	)
+	public Set<ApplicationDTO> getJobApplications(@PathVariable("id") Integer id) {
+		JobDTO jobDTO = jobService.find(id);
+		return jobDTO.getApplications();
+	}
+
+	@RequestMapping(
+			method = RequestMethod.POST,
+			value = "/{id}/applications"
+	)
+	public ApplicationDTO createApplication(@PathVariable("id") Integer id, @RequestBody ApplicationDTO applicationDTO) {
+		return jobService.addApplicationToJob(id, applicationDTO);
 	}
 }

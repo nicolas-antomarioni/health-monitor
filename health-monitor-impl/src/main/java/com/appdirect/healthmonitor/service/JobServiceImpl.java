@@ -1,6 +1,8 @@
 package com.appdirect.healthmonitor.service;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
@@ -13,8 +15,10 @@ import org.springframework.stereotype.Service;
 
 import com.appdirect.healthmonitor.converter.JobBeanToEntityConverter;
 import com.appdirect.healthmonitor.converter.JobEntityToBeanConverter;
+import com.appdirect.healthmonitor.converter.RunBeanToEntityConverter;
 import com.appdirect.healthmonitor.entity.Job;
 import com.appdirect.healthmonitor.exception.RepositoryException;
+import com.appdirect.healthmonitor.model.ApplicationDTO;
 import com.appdirect.healthmonitor.model.JobDTO;
 import com.appdirect.healthmonitor.repository.JobRepository;
 
@@ -30,6 +34,28 @@ public class JobServiceImpl implements JobService {
 
 	@Autowired
 	private JobEntityToBeanConverter JobEntityToBeanConverter;
+
+	@Autowired
+	private RunBeanToEntityConverter runBeanToEntityConverter;
+
+	@Autowired
+	private ApplicationService applicationService;
+
+	@Override
+	public void execute(JobDTO jobDTO) {
+		log.info("Started execution of job id = {}, type = {}", jobDTO.getId(), jobDTO.getTask());
+		try {
+			jobDTO.getTask()
+					.getTaskClass()
+					.getDeclaredConstructor(Supplier.class)
+					.newInstance((Supplier<Collection<ApplicationDTO>>) jobDTO::getApplications)
+					.setApplicationService(applicationService)
+					.run();
+		} catch (Exception e) {
+			log.error("Cannot execute job = {}", jobDTO, e);
+		}
+		log.info("Finished execution of job id = {}, type = {}", jobDTO.getId(), jobDTO.getTask());
+	}
 
 	@Override
 	public Page<JobDTO> findAll(Pageable pageable) {
@@ -51,8 +77,8 @@ public class JobServiceImpl implements JobService {
 	@Override
 	public JobDTO save(JobDTO JobDTO) {
 		log.info("Saving Job id = ", JobDTO.getId());
-		Job Job = JobRepository.save(JobBeanToEntityConverter.convert(JobDTO));
-		return JobEntityToBeanConverter.convert(Job);
+		Job job = JobRepository.save(JobBeanToEntityConverter.convert(JobDTO));
+		return JobEntityToBeanConverter.convert(job);
 	}
 
 	@Override
@@ -72,12 +98,21 @@ public class JobServiceImpl implements JobService {
 		JobRepository.delete(id);
 	}
 
+	@Override
+	public ApplicationDTO addApplicationToJob(Integer id, ApplicationDTO applicationDTO) {
+		JobDTO jobDTO = find(id);
+		ApplicationDTO savedApplication = applicationService.save(applicationDTO);
+		jobDTO.add(savedApplication);
+		save(jobDTO);
+		return applicationService.save(applicationDTO);
+	}
+
 	private Job readEntity(Integer id) {
-		Job Job = JobRepository.findOne(id);
-		if (Job == null) {
+		Job job = JobRepository.findOne(id);
+		if (job == null) {
 			throw new RepositoryException("Job entity with id = " + id + " is null");
 		}
-		return Job;
+		return job;
 	}
 
 	private Job updateEntity(JobDTO updatedBean, Job entity) {
@@ -85,7 +120,12 @@ public class JobServiceImpl implements JobService {
 			entity.setTask(updatedBean.getTask());
 		}
 		if (updatedBean.getRuns() != null) {
-			entity.setRuns(updatedBean.getRuns());
+			entity.setRuns(
+					updatedBean.getRuns()
+							.stream()
+							.map(runBeanToEntityConverter::convert)
+							.collect(Collectors.toSet())
+			);
 		}
 		return entity;
 	}

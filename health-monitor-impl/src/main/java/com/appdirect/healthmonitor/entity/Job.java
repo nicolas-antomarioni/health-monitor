@@ -40,6 +40,9 @@ public class Job implements Serializable {
 	@Enumerated(EnumType.STRING)
 	private TaskType task;
 
+	@OneToMany(targetEntity = Application.class, fetch = FetchType.EAGER)
+	private Set<Application> applications = new HashSet<>();
+
 	@OneToMany(targetEntity = Run.class, fetch = FetchType.EAGER, mappedBy = "job", cascade = CascadeType.ALL, orphanRemoval = true)
 	private Set<Run> runs = new HashSet<>();
 }

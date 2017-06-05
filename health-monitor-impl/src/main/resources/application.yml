@@ -19,12 +19,12 @@ spring:
             ddl-auto: validate
     h2:
         console:
-            enabled: true
+            active: true
             path: /console/
     http:
         encoding:
             charset: UTF-8
-            enabled: true
+            active: true
             force: true
 
 server:

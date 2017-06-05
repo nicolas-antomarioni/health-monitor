@@ -13,10 +13,12 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import com.appdirect.healthmonitor.converter.JobBeanToEntityConverter;
 import com.appdirect.healthmonitor.converter.SchedulerBeanToEntityConverter;
 import com.appdirect.healthmonitor.converter.SchedulerEntityToBeanConverter;
 import com.appdirect.healthmonitor.entity.Scheduler;
 import com.appdirect.healthmonitor.exception.RepositoryException;
+import com.appdirect.healthmonitor.model.JobDTO;
 import com.appdirect.healthmonitor.model.SchedulerDTO;
 import com.appdirect.healthmonitor.repository.SchedulerRepository;
 import com.appdirect.healthmonitor.util.DateTimeGMTProvider;
@@ -34,6 +36,12 @@ public class SchedulerServiceImpl implements SchedulerService {
 	@Autowired
 	private SchedulerEntityToBeanConverter schedulerEntityToBeanConverter;
 
+	@Autowired
+	private JobBeanToEntityConverter jobBeanToEntityConverter;
+
+	@Autowired
+	private JobService jobService;
+
 	@Override
 	public List<SchedulerDTO> getSchedulersToRun() {
 		return schedulerRepository.findAll().stream()
@@ -45,15 +53,9 @@ public class SchedulerServiceImpl implements SchedulerService {
 	@Override
 	public void execute(SchedulerDTO schedulerDTO) {
 		updateSchedulerLastRun(schedulerDTO);
-		log.info("Running scheduler id = {}, description = {}", schedulerDTO.getId(), schedulerDTO.getDescription());
-		schedulerDTO.getJobs().forEach(job -> {
-			try {
-				log.info("Running job id = {}, type = {}", job.getId(), job.getTask());
-				job.getTask().getTaskClass().newInstance().run();
-			} catch (Exception e) {
-				log.error("Cannot execute job = {}", job, e);
-			}
-		});
+		log.info("Started execution of scheduler id = {}", schedulerDTO.getId());
+		schedulerDTO.getJobs().forEach(job -> jobService.execute(job));
+		log.info("Finished execution of scheduler id = {}", schedulerDTO.getId());
 	}
 
 	@Override
@@ -77,10 +79,10 @@ public class SchedulerServiceImpl implements SchedulerService {
 	public SchedulerDTO save(SchedulerDTO schedulerDTO) {
 		log.info("Saving Scheduler = {} ", schedulerDTO);
 		if (schedulerDTO.getLastRun() == null) {
-			schedulerDTO.setLastRun(DateTimeGMTProvider.getCurrentInstant());
+			schedulerDTO.setLastRun(DateTimeGMTProvider.getCurrentInstant().minusMillis(schedulerDTO.getInterval()));
 		}
-		if (schedulerDTO.getEnabled() == null) {
-			schedulerDTO.setEnabled(true);
+		if (schedulerDTO.getActive() == null) {
+			schedulerDTO.setActive(true);
 		}
 		Scheduler scheduler = schedulerRepository.save(schedulerBeanToEntityConverter.convert(schedulerDTO));
 		return schedulerEntityToBeanConverter.convert(scheduler);
@@ -101,6 +103,15 @@ public class SchedulerServiceImpl implements SchedulerService {
 	public void delete(Integer id) {
 		log.info("Deleting Scheduler id = {}", id);
 		schedulerRepository.delete(id);
+	}
+
+	@Override
+	public JobDTO addJobToScheduler(Integer id, JobDTO jobDTO) {
+		SchedulerDTO schedulerDTO = find(id);
+		JobDTO savedJob = jobService.save(jobDTO);
+		schedulerDTO.add(savedJob);
+		save(schedulerDTO);
+		return jobService.save(jobDTO);
 	}
 
 	private Scheduler readEntity(Integer id) {
@@ -127,7 +138,12 @@ public class SchedulerServiceImpl implements SchedulerService {
 			}
 		}
 		if (updatedBean.getJobs() != null) {
-			entity.setJobs(updatedBean.getJobs());
+			entity.setJobs(
+					updatedBean.getJobs()
+							.stream()
+							.map(jobBeanToEntityConverter::convert)
+							.collect(Collectors.toSet())
+			);
 		}
 		if (updatedBean.getLastRun() != null) {
 			entity.setLastRun(updatedBean.getLastRun());
@@ -135,8 +151,8 @@ public class SchedulerServiceImpl implements SchedulerService {
 		if (updatedBean.getInterval() != null) {
 			entity.setInterval(updatedBean.getInterval());
 		}
-		if (updatedBean.getEnabled() != null) {
-			entity.setEnabled(updatedBean.getEnabled());
+		if (updatedBean.getActive() != null) {
+			entity.setActive(updatedBean.getActive());
 		}
 		return entity;
 	}
